@@ -21,15 +21,17 @@ const PaymentScreen = () => {
 
   // Effect hook to initialize configuration and load offerings
   useEffect(() => {
+    const customerInfoListener = (info) => console.log('Customer info updated:', info);
+
     const init = async () => {
       try {
+        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
         const APIKeys = {
           apple: 'your_apple_key',
           google: 'your_google_key'
         };
         await Purchases.configure({ apiKey: Platform.OS === 'android' ? APIKeys.google : APIKeys.apple });
-        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-        Purchases.addCustomerInfoUpdateListener((info) => console.log('Customer info updated:', info));
+        Purchases.addCustomerInfoUpdateListener(customerInfoListener);
         await loadOfferings();
       } catch (error) {
         console.error("Initialization error:", error);
@@ -37,6 +39,10 @@ const PaymentScreen = () => {
       }
     };
     init();
+
+    return () => {
+      Purchases.removeCustomerInfoUpdateListener(customerInfoListener);
+    };
   }, []);
 
   // Function to handle payment
